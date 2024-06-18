@@ -192,13 +192,14 @@ app.get('/notes/:id', authenticateToken, async (req, res) => {
             data = { editor, drawing };
         }).then(resolve);
     });
-    app.get('/', (req, res) => { 
-        res.send('Hello World!')
-    });
+   
 
 
     return res.status(200).json({ data });
 
+});
+app.get('/', (req, res) => {
+    res.send('Hello World!')
 });
 
 app.listen(port, () => {
