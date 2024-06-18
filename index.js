@@ -61,7 +61,7 @@ app.post('/register', async (req, res) => {
         gun.get('notesDetails').get(username).get(id).put({ id, editor: "[]", drawing: "{}" }, (ack) => { });
 
         const token = jwt.sign({ username }, JWT_SECRET, { expiresIn: '1h' });
-        res.status(201).send(
+        res.status(200).send(
             {
                 token,
                 username
