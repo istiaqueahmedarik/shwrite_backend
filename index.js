@@ -18,6 +18,12 @@ const server = require('http').createServer(app);
 const gun = Gun({
     web: server
 });
+gun.on('hi', peer => { 
+    console.log('peer', peer);
+    peer.get('hi').put({ ok: true });
+});
+
+gun.on('out', { get: { '#': { '*': '' } } });
 
 // Middleware to check JWT
 const authenticateToken = (req, res, next) => {
