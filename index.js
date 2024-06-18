@@ -102,12 +102,13 @@ app.post('/notes/create/createNew', authenticateToken, (req, res) => {
     
     const { title, description } = req.body;
     const id = v4();
-    gun.get('notes').get(username).get(id).put({ id,title, description }, (ack) => {
+    const time = new Date().getTime();
+    gun.get('notes').get(username).get(id).put({ id,title, description,time }, (ack) => {
         // res.json(ack);
         
     });
 
-    gun.get('notesDetails').get(username).get(id).put({ id, title, description }, (ack) => {
+    gun.get('notesDetails').get(username).get(id).put({ id, title, description,time }, (ack) => {
         // res.json(ack);
         console.log(ack)
         
@@ -127,10 +128,13 @@ app.get('/notes/all/allNotes', authenticateToken, async (req, res) => {
                 const id = note['id']
                 const title = note['title'];
                 const description = note['description'];
-                allNotes.push({ id, title, description });
+                const time = note['time'];
+                allNotes.push({ id, title, description,time });
             }
         }).then(resolve);
     });
+
+    allNotes.sort((a, b) => b.time - a.time);
 
     
     return res.status(200).json(allNotes);
