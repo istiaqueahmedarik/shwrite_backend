@@ -14,6 +14,9 @@ app.use(Gun.serve);
 
 const JWT_SECRET = process.env.secret || 'secret';
 const server = require('http').createServer(app);
+app.listen(port, () => {
+    console.log(`Server running on port ${port}`)
+});
 // Create a Gun instance
 const gun = Gun({
     web: server
@@ -208,6 +211,4 @@ app.get('/', (req, res) => {
     res.send('Hello World!')
 });
 
-app.listen(port, () => {
-    console.log(`Server running on port ${port}`)
-});
+
