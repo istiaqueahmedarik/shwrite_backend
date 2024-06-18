@@ -56,6 +56,10 @@ app.post('/register', async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, 10);
         gun.get('users').get(username).put({ username, password: hashedPassword });
 
+        const id = v4();
+        gun.get('notes').get(username).get(id).put({ id, title: 'Welcome to Notes', description: 'Create a new note to get started', time: new Date().getTime() }, (ack) => { });
+        gun.get('notesDetails').get(username).get(id).put({ id, editor: "[]", drawing: "{}" }, (ack) => { });
+
         const token = jwt.sign({ username }, JWT_SECRET, { expiresIn: '1h' });
         res.status(201).send(
             {
@@ -74,10 +78,12 @@ app.post('/login', (req, res) => {
         return res.status(400).send('Username and password are required');
     }
 
+
     // Retrieve the user
     gun.get('users').get(username).once(async (user) => {
         if (!user) {
 
+            console.log('User not found')
             return res.status(400).send('User not found');
         }
 
@@ -85,12 +91,16 @@ app.post('/login', (req, res) => {
         const match = await bcrypt.compare(password, user.password);
         if (!match) {
 
+            console.log('Invalid credentials')
+
             return res.status(401).send('Invalid credentials');
         }
 
+        console.log('User logged in')
+
         // Generate JWT
         const token = jwt.sign({ username: user.username }, JWT_SECRET, { expiresIn: '1h' });
-        res.json({ token });
+        res.status(200).json({ token, username: user.username });
     });
 });
 
@@ -101,7 +111,7 @@ app.post('/notes/create/createNew', authenticateToken, (req, res) => {
 
     const { title, description } = req.body;
     const id = v4();
-    const time = toString(new Date().getTime());
+    const time = new Date().getTime();
     gun.get('notes').get(username).get(id).put({ id, title, description, time }, (ack) => {
         // res.json(ack);
 
@@ -119,24 +129,40 @@ app.post('/notes/create/createNew', authenticateToken, (req, res) => {
 
 app.get('/notes/all/allNotes', authenticateToken, async (req, res) => {
     const username = req.user.username;
+    console.log(username)
     const allNotes = [];
+    try {
 
-    await new Promise((resolve) => {
-        gun.get('notes').get(username).map().once((note) => {
-            if (note) {
-                const id = note['id']
-                const title = note['title'];
-                const description = note['description'];
-                const time = note['time'];
-                allNotes.push({ id, title, description, time });
-            }
-        }).then(resolve);
-    });
+        await new Promise((resolve) => {
+            gun.get('notes').get(username).map().once((note) => {
+                if (note) {
+                    const id = note['id']
+                    const title = note['title'];
+                    const description = note['description'];
+                    const time = note['time'];
+                    console.log(id, title, description, time)
+                    allNotes.push({ id, title, description, time });
+                }
+                else {
+                    console.log('No notes found')
+                }
+            }).then(resolve);
+        });
+    }
+    catch (e) {
+        console.log(e)
+    }
+    console.log(allNotes)
+    if (allNotes.length) {
+        allNotes.sort((a, b) => b.time - a.time);
+        return res.status(200).json(allNotes);
+    }
+    else {
+        allNotes = [{ id: '1', title: 'Welcome to Notes', description: 'Create a new note to get started', time: new Date().getTime() }];
+        return res.status(200).json(allNotes);
+    }
 
-    allNotes.sort((a, b) => b.time - a.time);
 
-
-    return res.status(200).json(allNotes);
 });
 
 
