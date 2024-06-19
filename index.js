@@ -25,7 +25,6 @@ gun.on('hi', peer => {
     peer.get('hi').put({ ok: true });
 });
 
-gun.on('out', { get: { '#': { '*': '' } } });
 
 // Middleware to check JWT
 const authenticateToken = (req, res, next) => {
